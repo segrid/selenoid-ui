@@ -61,7 +61,7 @@ type Videos []string
  * -------------- */
 
 // sessionInfo - extended session information
-type sessionInfo struct {
+type SessionInfo struct {
 	ID        string `json:"id"`
 	Container string `json:"container"`
 	Caps      Caps   `json:"caps"`
@@ -69,11 +69,11 @@ type sessionInfo struct {
 }
 
 // result - processed selenoid state
-type result struct {
+type Result struct {
 	State    State                  `json:"state"`
 	Origin   string                 `json:"origin"`
 	Browsers map[string]int         `json:"browsers"`
-	Sessions map[string]sessionInfo `json:"sessions"`
+	Sessions map[string]SessionInfo `json:"sessions"`
 	Version  string                 `json:"version"`
 	Errors   []interface{}          `json:"errors"`
 }
@@ -139,9 +139,9 @@ func Status(ctx context.Context, webdriverURI *url.URL, statusURI *url.URL, vers
 	return json.Marshal(toUI(state, webdriverURI, version))
 }
 
-func toUI(state State, webdriverURI *url.URL, version string) result {
+func toUI(state State, webdriverURI *url.URL, version string) Result {
 	browsers := make(map[string]int)
-	sessions := make(map[string]sessionInfo)
+	sessions := make(map[string]SessionInfo)
 
 	for browser, version := range state.Browsers {
 		count := 0
@@ -149,7 +149,7 @@ func toUI(state State, webdriverURI *url.URL, version string) result {
 			for quotaName, sess := range quota {
 				count += sess.Count
 				for _, session := range sess.Sessions {
-					sessions[session.ID] = sessionInfo{
+					sessions[session.ID] = SessionInfo{
 						ID:        session.ID,
 						Quota:     quotaName,
 						Container: session.Container,
@@ -161,7 +161,7 @@ func toUI(state State, webdriverURI *url.URL, version string) result {
 		browsers[browser] = count
 	}
 
-	return result{
+	return Result{
 		State:    state,
 		Origin:   webdriverURI.String(),
 		Browsers: browsers,

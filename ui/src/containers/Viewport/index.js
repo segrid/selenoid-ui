@@ -19,6 +19,8 @@ import Capabilities from "../../containers/Capabilities";
 import Status from "../../components/Stats/Status";
 import Sessions from "../../components/Sessions";
 import Session from "../../components/Session";
+import Instances from "../../components/Instances";
+import Config from "../../components/Config";
 import Videos from "../../components/Videos";
 import Quota from "../../components/Stats/Quota";
 import Queue from "../../components/Stats/Queue";
@@ -29,6 +31,8 @@ const links = videos => {
     return [
         { href: "/", title: "STATS", exact: true },
         { href: "/capabilities/", title: "CAPABILITIES", exact: true },
+        { href: "/instances", title: "INSTANCES", exact: true },
+        { href: "/config", title: "CONFIG", exact: true },
         ...(videos ? [{ href: "/videos", title: "VIDEOS", exact: true }] : []),
     ];
 };
@@ -46,7 +50,7 @@ const Viewport = () => {
     // can be checked offline with simple
     // const {origin, sse, status, state, browsers = {}, sessions = {}} = require("../../sse-example.json");
 
-    const { origin, state = {}, browsers = {}, sessions = {}, version = "unknown" } = useObservable(
+    const { origin, state = {}, browsers = {}, sessions = {}, instances = {}, config = {}, version = "unknown" } = useObservable(
         in$ => {
             return in$.pipe(
                 flatMap(([pushStatus]) =>
@@ -187,6 +191,10 @@ const Viewport = () => {
                             />
                         )}
                     />
+
+                    <Route exact={true} path="/instances" render={() => <Instances instances={instances} query={query} />} />
+                    <Route exact={true} path="/config" render={() => <Config config={config} query={query} />} />
+
                 </StyledViewport>
             </Router>
         </>

@@ -5,11 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	auth "github.com/abbot/go-http-auth"
-	"github.com/aerokube/selenoid-ui/selenoid"
-	"github.com/aerokube/util/sse"
-	"github.com/koding/websocketproxy"
-	"github.com/rakyll/statik/fs"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -20,7 +15,15 @@ import (
 	"syscall"
 	"time"
 
+	auth "github.com/abbot/go-http-auth"
+	"github.com/aerokube/selenoid-ui/selenoid"
+	"github.com/aerokube/util/sse"
+	"github.com/koding/websocketproxy"
+	"github.com/rakyll/statik/fs"
+
 	_ "github.com/aerokube/selenoid-ui/statik"
+
+	"github.com/aerokube/selenoid-ui/sgr"
 )
 
 //go:generate statik -src=./ui/build
@@ -44,6 +47,9 @@ var (
 	version     bool
 	gitRevision = "HEAD"
 	buildStamp  = "unknown"
+
+	sgrUriString    string
+	sgrURI    *url.URL
 )
 
 func mux(sse *sse.SseBroker) http.Handler {
@@ -114,7 +120,7 @@ type SSEError struct {
 
 func status(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
-
+	log.Printf("Getting selenoid status")
 	v := gitRevision + "[" + buildStamp + "]"
 	status, err := selenoid.Status(req.Context(), webdriverURI, statusURI, v)
 	if err != nil {
@@ -128,7 +134,20 @@ func status(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	w.Write(status)
+	log.Printf("Getting sgr status")
+	result, err := sgr.Status(req.Context(), sgrURI, status)
+	if err != nil {
+		log.Printf("[ERROR] [Can't get segrid status: %v]", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(struct {
+			Errors  []SSEError `json:"errors"`
+			Version string     `json:"version"`
+		}{Errors: []SSEError{{Msg: "can't get segrid status"}}, Version: v})
+
+		return
+	}
+
+	w.Write(result)
 }
 
 func reverseProxy(u *url.URL) http.Handler {
@@ -147,9 +166,10 @@ func showVersion() {
 
 func init() {
 	flag.StringVar(&listen, "listen", ":8080", "host and port to listen on")
-	flag.StringVar(&selenoidUri, "selenoid-uri", "http://localhost:4444", "selenoid uri to fetch data from")
+	flag.StringVar(&selenoidUri, "selenoid-uri", "http://40.76.204.23:4444", "selenoid uri to fetch data from")
 	flag.StringVar(&webdriverUriString, "webdriver-uri", "", "webdriver uri used to create new sessions")
 	flag.StringVar(&statusUriString, "status-uri", "", "status uri to fetch data from")
+	flag.StringVar(&sgrUriString, "sgr-uri", "http://localhost:8085/sgr", "SeGrid uri to fetch data from")
 	flag.StringVar(&allowedOrigin, "allowed-origin", "", "comma separated list of allowed Origin headers (use * to allow all)")
 	flag.StringVar(&users, "users", "", "htpasswd file path containing users information")
 	flag.DurationVar(&timeout, "timeout", 3*time.Second, "response timeout, e.g. 5s or 1m")
@@ -190,6 +210,12 @@ func init() {
 	if _, err := os.Stat(users); users != "" && err != nil {
 		log.Fatalf("[INIT] [Invalid users file: %v]", err)
 	}
+
+	sg, err := url.Parse(sgrUriString)
+	if err != nil {
+		log.Fatalf("[INIT] [Invalid status URI: %v]", err)
+	}
+	sgrURI = sg
 }
 
 func main() {

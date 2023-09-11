@@ -1,0 +1,110 @@
+/* ConfigForm.css */
+
+.config-form {
+    max-width: 70%;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    /* Gap between the columns */
+}
+
+.column {
+    flex: 1;
+    padding: 10px;
+}
+
+.span-2 {
+    grid-column: span 2;
+}
+
+.span-3 {
+    grid-column: span 3;
+}
+
+/* Style for form fields and labels */
+.config-form label {
+    display: block;
+    margin-bottom: 10px;
+    padding-bottom: em;
+    color: antiquewhite;
+}
+
+.config-form input,
+.config-form select {
+    width: 100%;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.config-form textarea {
+    width: 100%;
+}
+
+.config-form ul {
+    /* margin: 0 0 0 32px; */
+    color: whitesmoke;
+    font-size: small;
+    list-style: none;
+    padding: 0px;
+}
+
+ul li {
+    margin: 0; padding: 0;
+}
+
+ul li:before
+{
+    /* content: '\2713'; */
+    margin-right: 1em;
+}
+
+/* Style for searchable lists (assuming you're using a select dropdown) */
+.config-form .searchable-list {
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.delete {
+    color: red;
+}
+
+/* Style for editable two-column tables */
+.config-form .table {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.config-form .table th {
+    text-align: left;
+    padding: 8px;
+    background-color: #f2f2f2;
+}
+
+.config-form .table td {
+    padding: 8px;
+    border-bottom: 1px solid #ccc;
+}
+
+.config-form .table td:last-child {
+    text-align: right;
+}
+
+.config-form .add-row-button {
+    margin-top: 10px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 10px 20px;
+}
+
+.config-form .add-row-button:hover {
+    background-color: #45a049;
+}
+
+/* Additional styles and customization can be added as needed */
